@@ -1,5 +1,6 @@
 // Badge.tsx
 // Componente reutilizable para mostrar el estado de un gato
+// Por ejemplo: "Esterilizado", "Enfermo", "Embarazada"
 
 interface BadgeProps {
   texto: string;
