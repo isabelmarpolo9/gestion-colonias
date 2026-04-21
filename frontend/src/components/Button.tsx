@@ -10,9 +10,9 @@ interface ButtonProps {
 
 export default function Button({ texto, onClick, tipo = 'primario', disabled = false }: ButtonProps) {
   const estilos = {
-    primario: 'bg-blue-600 hover:bg-blue-700 text-white',
-    secundario: 'bg-gray-200 hover:bg-gray-300 text-gray-800',
-    peligro: 'bg-red-600 hover:bg-red-700 text-white',
+    primario: 'bg-purple-600 hover:bg-purple-700 text-white',
+    secundario: 'bg-purple-100 hover:bg-purple-200 text-purple-800',
+    peligro: 'bg-red-500 hover:bg-red-600 text-white',
   };
 
   return (
