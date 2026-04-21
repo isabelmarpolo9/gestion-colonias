@@ -1,10 +1,6 @@
-// useGatos.ts
-// Custom hook que gestiona todo lo relacionado con los gatos de una colonia
+import { useState, useMemo, useCallback } from 'react'
+import type { Gato } from '../types/index.ts'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Gato } from '../types/index'
-
-// Datos de ejemplo
 const GATOS_EJEMPLO: Gato[] = [
   {
     id: '1',
@@ -59,26 +55,19 @@ const GATOS_EJEMPLO: Gato[] = [
 
 const STORAGE_KEY = 'gatos'
 
-export function useGatos(coloniaId?: string) {
-  // useState: guarda la lista de todos los gatos
-  const [gatos, setGatos] = useState<Gato[]>([])
+function cargarGatos(): Gato[] {
+  const datos = localStorage.getItem(STORAGE_KEY)
+  if (datos) {
+    return JSON.parse(datos)
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(GATOS_EJEMPLO))
+  return GATOS_EJEMPLO
+}
 
-  // useState: guarda el filtro de estado seleccionado
+export function useGatos(coloniaId?: string) {
+  const [gatos, setGatos] = useState<Gato[]>(cargarGatos)
   const [filtro, setFiltro] = useState<'todos' | 'esterilizado' | 'enfermo' | 'embarazada' | 'testado'>('todos')
 
-  // useEffect: carga los gatos desde LocalStorage al montar el componente
-  useEffect(() => {
-    const datos = localStorage.getItem(STORAGE_KEY)
-    if (datos) {
-      setGatos(JSON.parse(datos))
-    } else {
-      setGatos(GATOS_EJEMPLO)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(GATOS_EJEMPLO))
-    }
-  }, [])
-
-  // useMemo: filtra los gatos por colonia y por estado
-  // Solo recalcula cuando cambian gatos, coloniaId o filtro
   const gatosFiltrados = useMemo(() => {
     let resultado = coloniaId
       ? gatos.filter(g => g.coloniaId === coloniaId)
@@ -91,7 +80,6 @@ export function useGatos(coloniaId?: string) {
     return resultado
   }, [gatos, coloniaId, filtro])
 
-  // useCallback: añade un gato nuevo a una colonia
   const añadirGato = useCallback((nuevoGato: Omit<Gato, 'id'>) => {
     const gato: Gato = {
       ...nuevoGato,
@@ -104,7 +92,6 @@ export function useGatos(coloniaId?: string) {
     })
   }, [])
 
-  // useCallback: actualiza los datos de un gato existente
   const actualizarGato = useCallback((id: string, cambios: Partial<Gato>) => {
     setGatos(prev => {
       const actualizados = prev.map(g => g.id === id ? { ...g, ...cambios } : g)
@@ -113,7 +100,6 @@ export function useGatos(coloniaId?: string) {
     })
   }, [])
 
-  // useCallback: elimina un gato por su ID
   const eliminarGato = useCallback((id: string) => {
     setGatos(prev => {
       const actualizados = prev.filter(g => g.id !== id)

@@ -1,11 +1,6 @@
-// useColonias.ts
-// Custom hook que gestiona todo lo relacionado con las colonias
-// Agrupa useState, useEffect, useMemo y useCallback en un solo lugar reutilizable
+import { useState, useMemo, useCallback } from 'react'
+import type { Colonia } from '../types/index.ts'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Colonia } from '../types/index'
-
-// Datos de ejemplo para que la app tenga contenido desde el principio
 const COLONIAS_EJEMPLO: Colonia[] = [
   {
     id: '1',
@@ -32,29 +27,23 @@ const COLONIAS_EJEMPLO: Colonia[] = [
 
 const STORAGE_KEY = 'colonias'
 
-export function useColonias() {
-  // useState: guarda la lista de colonias
-  // Cuando cambia, React vuelve a renderizar los componentes que usan este hook
-  const [colonias, setColonias] = useState<Colonia[]>([])
+// Función que inicializa el estado leyendo LocalStorage directamente
+// Esto evita el problema de llamar setState dentro de useEffect
+function cargarColonias(): Colonia[] {
+  const datos = localStorage.getItem(STORAGE_KEY)
+  if (datos) {
+    return JSON.parse(datos)
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(COLONIAS_EJEMPLO))
+  return COLONIAS_EJEMPLO
+}
 
-  // useState: guarda un texto de búsqueda para filtrar colonias
+export function useColonias() {
+  // useState con función de inicialización lazy
+  // La función cargarColonias solo se ejecuta una vez al montar el componente
+  const [colonias, setColonias] = useState<Colonia[]>(cargarColonias)
   const [busqueda, setBusqueda] = useState('')
 
-  // useEffect: se ejecuta una sola vez cuando la app arranca
-  // Carga las colonias desde LocalStorage, o usa los datos de ejemplo si no hay nada guardado
-  useEffect(() => {
-    const datos = localStorage.getItem(STORAGE_KEY)
-    if (datos) {
-      setColonias(JSON.parse(datos))
-    } else {
-      setColonias(COLONIAS_EJEMPLO)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(COLONIAS_EJEMPLO))
-    }
-  }, []) // El array vacío [] significa "ejecuta esto solo una vez al montar el componente"
-
-  // useMemo: filtra las colonias según el texto de búsqueda
-  // Solo recalcula el filtro cuando cambian 'colonias' o 'busqueda'
-  // Sin useMemo, este filtro se recalcularía en cada render aunque los datos no hayan cambiado
   const coloniasFiltradas = useMemo(() => {
     return colonias.filter(colonia =>
       colonia.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -62,13 +51,10 @@ export function useColonias() {
     )
   }, [colonias, busqueda])
 
-  // useCallback: función para añadir una colonia nueva
-  // Se memoriza para no recrearla en cada render
-  // Sin useCallback, los componentes hijos que reciben esta función se rerenderizarían innecesariamente
   const añadirColonia = useCallback((nuevaColonia: Omit<Colonia, 'id'>) => {
     const colonia: Colonia = {
       ...nuevaColonia,
-      id: Date.now().toString() // Generamos un ID único basado en la fecha actual
+      id: Date.now().toString()
     }
     setColonias(prev => {
       const actualizadas = [...prev, colonia]
@@ -77,7 +63,6 @@ export function useColonias() {
     })
   }, [])
 
-  // useCallback: función para eliminar una colonia por su ID
   const eliminarColonia = useCallback((id: string) => {
     setColonias(prev => {
       const actualizadas = prev.filter(c => c.id !== id)
@@ -86,7 +71,6 @@ export function useColonias() {
     })
   }, [])
 
-  // Devolvemos todo lo que los componentes necesitan
   return {
     colonias,
     coloniasFiltradas,
