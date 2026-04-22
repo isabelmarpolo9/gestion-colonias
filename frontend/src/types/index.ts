@@ -15,6 +15,7 @@ export interface Gato {
   edad: number;
   esterilizado: boolean;
   testado: boolean;
+  resultadoTest: 'positivo' | 'negativo' | null;
   enfermo: boolean;
   descripcionEnfermedad: string;
   embarazada: boolean;
