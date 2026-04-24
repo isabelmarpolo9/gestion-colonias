@@ -42,7 +42,7 @@ export default function CatPage() {
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase">Edad</p>
-            <p className="text-gray-700">{gato.edad} anos</p>
+            <p className="text-gray-700">{gato.edad} años</p>
           </div>
           <div>
             <p className="text-xs text-gray-400 uppercase">Colonia</p>
