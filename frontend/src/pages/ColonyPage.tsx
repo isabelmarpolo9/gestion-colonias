@@ -6,11 +6,15 @@ import { useAppContext } from '../context/AppContext'
 import Card from '../components/Card'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
+import { useState } from 'react'
+import Modal from '../components/Modal'
+import FormGato from '../components/FormGato'
 
 export default function ColonyPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { colonias, gatosFiltrados, filtro, setFiltro } = useAppContext()
+  const [modalAbierto, setModalAbierto] = useState(false)
 
   // Buscamos la colonia por su ID
   const colonia = colonias.find(c => c.id === id)
@@ -43,10 +47,10 @@ export default function ColonyPage() {
           <p className="text-sm text-purple-600 mt-1">Cuidador: {colonia.cuidador}</p>
         </div>
         <Button
-          texto="+ Añadir gato"
-          onClick={() => {}}
-          tipo="primario"
-        />
+        texto="+ Añadir gato"
+        onClick={() => setModalAbierto(true)}
+        tipo="primario"
+      />
       </div>
 
       {/* Filtros */}
@@ -91,6 +95,11 @@ export default function ColonyPage() {
           ))}
         </div>
       )}
+      {modalAbierto && (
+  <Modal titulo="Añadir gato" onCerrar={() => setModalAbierto(false)}>
+    <FormGato coloniaId={id!} onCerrar={() => setModalAbierto(false)} />
+  </Modal>
+)}
     </div>
   )
 }

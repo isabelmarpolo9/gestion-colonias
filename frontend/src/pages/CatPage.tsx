@@ -2,11 +2,15 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
+import { useState } from 'react'
+import Modal from '../components/Modal'
+import FormDesparasitacion from '../components/FormDesparasitacion'
 
 export default function CatPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { gatos, colonias, actualizarGato, eliminarGato } = useAppContext()
+  const [modalDesparasitacion, setModalDesparasitacion] = useState(false)
 
   const gato = gatos.find(g => g.id === id)
   const colonia = colonias.find(c => c.id === gato?.coloniaId)
@@ -82,7 +86,10 @@ export default function CatPage() {
         </div>
       </div>
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Desparasitaciones</h2>
+        <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">Desparasitaciones</h2>
+        <Button texto="+ Registrar" onClick={() => setModalDesparasitacion(true)} tipo="primario" />
+      </div>
         {gato.desparasitaciones.length === 0 ? (
           <p className="text-gray-500">No hay desparasitaciones registradas</p>
         ) : (
@@ -96,6 +103,11 @@ export default function CatPage() {
           </div>
         )}
       </div>
+      {modalDesparasitacion && (
+  <Modal titulo="Registrar desparasitacion" onCerrar={() => setModalDesparasitacion(false)}>
+    <FormDesparasitacion gatoId={gato.id} onCerrar={() => setModalDesparasitacion(false)} />
+  </Modal>
+)}
     </div>
   )
 }

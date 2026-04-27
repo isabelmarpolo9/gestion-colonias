@@ -3,6 +3,9 @@
 
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
+import { useState } from 'react'
+import Modal from '../components/Modal'
+import FormColonia from '../components/FormColonia'
 import Card from '../components/Card'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
@@ -10,16 +13,17 @@ import Button from '../components/Button'
 export default function HomePage() {
   const navigate = useNavigate()
   const { coloniasFiltradas, busqueda, setBusqueda, eliminarColonia } = useAppContext()
+  const [modalAbierto, setModalAbierto] = useState(false)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Colonias Felinas</h1>
         <Button
-          texto="+ Nueva colonia"
-          onClick={() => {}}
-          tipo="primario"
-        />
+        texto="+ Nueva colonia"
+        onClick={() => setModalAbierto(true)}
+        tipo="primario"
+      />
       </div>
 
       {/* Buscador */}
@@ -59,6 +63,11 @@ export default function HomePage() {
           ))}
         </div>
       )}
+      {modalAbierto && (
+  <Modal titulo="Nueva colonia" onCerrar={() => setModalAbierto(false)}>
+    <FormColonia onCerrar={() => setModalAbierto(false)} />
+  </Modal>
+)}
     </div>
   )
 }
