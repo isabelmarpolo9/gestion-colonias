@@ -12,11 +12,23 @@ import Button from '../components/Button'
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { coloniasFiltradas, busqueda, setBusqueda, eliminarColonia } = useAppContext()
+  const { coloniasFiltradas, busqueda, setBusqueda, eliminarColonia, loadingColonias, errorColonias } = useAppContext()
   const [modalAbierto, setModalAbierto] = useState(false)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      {loadingColonias && (
+        <div className="text-center py-12">
+          <p className="text-purple-600 font-medium">Cargando colonias...</p>
+        </div>
+      )}
+
+      {errorColonias && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-700">Error: {errorColonias}</p>
+          <p className="text-red-500 text-sm mt-1">Asegurate de que el servidor esta corriendo en http://localhost:3000</p>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Colonias Felinas</h1>
         <Button

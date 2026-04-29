@@ -1,114 +1,65 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { Gato } from '../types/index.ts'
-
-const GATOS_EJEMPLO: Gato[] = [
-  {
-    id: '1',
-    coloniaId: '1',
-    nombre: 'Manchas',
-    color: 'negro y blanco',
-    sexo: 'macho',
-    edad: 3,
-    esterilizado: true,
-    testado: true,
-    resultadoTest: 'negativo',
-    enfermo: false,
-    descripcionEnfermedad: '',
-    embarazada: false,
-    foto: '',
-    desparasitaciones: [
-      { id: '1', fecha: '2024-01-15', producto: 'Stronghold' }
-    ]
-  },
-  {
-    id: '2',
-    coloniaId: '1',
-    nombre: 'Luna',
-    color: 'gris',
-    sexo: 'hembra',
-    edad: 2,
-    esterilizado: false,
-    testado: false,
-    resultadoTest: null,
-    enfermo: false,
-    descripcionEnfermedad: '',
-    embarazada: true,
-    foto: '',
-    desparasitaciones: []
-  },
-  {
-    id: '3',
-    coloniaId: '2',
-    nombre: 'Naranja',
-    color: 'naranja',
-    sexo: 'macho',
-    edad: 5,
-    esterilizado: true,
-    testado: true,
-    resultadoTest: 'positivo',
-    enfermo: true,
-    descripcionEnfermedad: 'Conjuntivitis',
-    embarazada: false,
-    foto: '',
-    desparasitaciones: [
-      { id: '2', fecha: '2024-02-10', producto: 'Advocate' }
-    ]
-  }
-]
-
-const STORAGE_KEY = 'gatos'
-
-function cargarGatos(): Gato[] {
-  const datos = localStorage.getItem(STORAGE_KEY)
-  if (datos) {
-    return JSON.parse(datos)
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(GATOS_EJEMPLO))
-  return GATOS_EJEMPLO
-}
+import * as api from '../api/client.ts'
 
 export function useGatos(coloniaId?: string) {
-  const [gatos, setGatos] = useState<Gato[]>(cargarGatos)
+  const [gatos, setGatos] = useState<Gato[]>([])
   const [filtro, setFiltro] = useState<'todos' | 'esterilizado' | 'enfermo' | 'embarazada' | 'testado'>('todos')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Carga los gatos desde la API al montar el componente
+  useEffect(() => {
+    setLoading(true)
+    const peticion = coloniaId
+      ? api.getGatosByColonia(coloniaId)
+      : Promise.resolve([])
+
+    peticion
+      .then(datos => {
+        setGatos(datos)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoading(false)
+      })
+  }, [coloniaId])
 
   const gatosFiltrados = useMemo(() => {
-    let resultado = coloniaId
-      ? gatos.filter(g => g.coloniaId === coloniaId)
-      : gatos
+    if (filtro === 'esterilizado') return gatos.filter(g => g.esterilizado)
+    if (filtro === 'enfermo') return gatos.filter(g => g.enfermo)
+    if (filtro === 'embarazada') return gatos.filter(g => g.embarazada)
+    if (filtro === 'testado') return gatos.filter(g => g.testado)
+    return gatos
+  }, [gatos, filtro])
 
-    if (filtro === 'esterilizado') return resultado.filter(g => g.esterilizado)
-    if (filtro === 'enfermo') return resultado.filter(g => g.enfermo)
-    if (filtro === 'embarazada') return resultado.filter(g => g.embarazada)
-    if (filtro === 'testado') return resultado.filter(g => g.testado)
-    return resultado
-  }, [gatos, coloniaId, filtro])
-
-  const añadirGato = useCallback((nuevoGato: Omit<Gato, 'id'>) => {
-    const gato: Gato = {
-      ...nuevoGato,
-      id: Date.now().toString()
+  const añadirGato = useCallback(async (nuevoGato: Omit<Gato, 'id' | 'coloniaId'>) => {
+    if (!coloniaId) return
+    try {
+      const gato = await api.createGato(coloniaId, nuevoGato)
+      setGatos(prev => [...prev, gato])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al crear el gato')
     }
-    setGatos(prev => {
-      const actualizados = [...prev, gato]
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizados))
-      return actualizados
-    })
+  }, [coloniaId])
+
+  const actualizarGato = useCallback(async (id: string, cambios: Partial<Gato>) => {
+    try {
+      const gato = await api.updateGato(id, cambios)
+      setGatos(prev => prev.map(g => g.id === id ? gato : g))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar el gato')
+    }
   }, [])
 
-  const actualizarGato = useCallback((id: string, cambios: Partial<Gato>) => {
-    setGatos(prev => {
-      const actualizados = prev.map(g => g.id === id ? { ...g, ...cambios } : g)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizados))
-      return actualizados
-    })
-  }, [])
-
-  const eliminarGato = useCallback((id: string) => {
-    setGatos(prev => {
-      const actualizados = prev.filter(g => g.id !== id)
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(actualizados))
-      return actualizados
-    })
+  const eliminarGato = useCallback(async (id: string) => {
+    try {
+      await api.deleteGato(id)
+      setGatos(prev => prev.filter(g => g.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar el gato')
+    }
   }, [])
 
   return {
@@ -116,6 +67,8 @@ export function useGatos(coloniaId?: string) {
     gatosFiltrados,
     filtro,
     setFiltro,
+    loading,
+    error,
     añadirGato,
     actualizarGato,
     eliminarGato
