@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
+import { useGatos } from '../hooks/useGatos'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import { useState } from 'react'
@@ -9,16 +10,22 @@ import FormDesparasitacion from '../components/FormDesparasitacion'
 export default function CatPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { gatos, colonias, actualizarGato, eliminarGato } = useAppContext()
+  const { colonias } = useAppContext()
   const [modalDesparasitacion, setModalDesparasitacion] = useState(false)
+
+  // Cargamos todos los gatos sin filtrar por colonia
+  // para poder encontrar el gato por su ID
+  const { gatos, actualizarGato, eliminarGato, recargar } = useGatos()
 
   const gato = gatos.find(g => g.id === id)
   const colonia = colonias.find(c => c.id === gato?.coloniaId)
 
-  if (!gato) {
+  if (gatos.length > 0 && !gato) {
     navigate('/404')
     return null
   }
+
+  if (!gato) return <p className="text-center py-12 text-purple-600">Cargando...</p>
 
   const handleEliminar = () => {
     eliminarGato(gato.id)
@@ -57,10 +64,10 @@ export default function CatPage() {
           {gato.esterilizado && <Badge texto="Esterilizado" color="verde" />}
           {gato.testado && (
             <Badge
-                texto={`Test FIV/FELV: ${gato.resultadoTest === 'positivo' ? 'Positivo' : 'Negativo'}`}
-                color={gato.resultadoTest === 'positivo' ? 'rojo' : 'azul'}
+              texto={`Test FIV/FELV: ${gato.resultadoTest === 'positivo' ? 'Positivo' : 'Negativo'}`}
+              color={gato.resultadoTest === 'positivo' ? 'rojo' : 'azul'}
             />
-            )}
+          )}
           {gato.enfermo && <Badge texto="Enfermo" color="rojo" />}
           {gato.embarazada && <Badge texto="Embarazada" color="amarillo" />}
         </div>
@@ -87,9 +94,9 @@ export default function CatPage() {
       </div>
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">Desparasitaciones</h2>
-        <Button texto="+ Registrar" onClick={() => setModalDesparasitacion(true)} tipo="primario" />
-      </div>
+          <h2 className="text-lg font-semibold text-gray-800">Desparasitaciones</h2>
+          <Button texto="+ Registrar" onClick={() => setModalDesparasitacion(true)} tipo="primario" />
+        </div>
         {gato.desparasitaciones.length === 0 ? (
           <p className="text-gray-500">No hay desparasitaciones registradas</p>
         ) : (
@@ -104,10 +111,10 @@ export default function CatPage() {
         )}
       </div>
       {modalDesparasitacion && (
-  <Modal titulo="Registrar desparasitacion" onCerrar={() => setModalDesparasitacion(false)}>
-    <FormDesparasitacion gatoId={gato.id} onCerrar={() => setModalDesparasitacion(false)} />
-  </Modal>
-)}
+        <Modal titulo="Registrar desparasitacion" onCerrar={() => setModalDesparasitacion(false)}>
+          <FormDesparasitacion gatoId={gato.id} onCerrar={() => setModalDesparasitacion(false)} onRecargar={recargar} />
+        </Modal>
+      )}
     </div>
   )
 }

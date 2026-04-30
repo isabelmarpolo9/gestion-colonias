@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import Button from './Button'
+import type { Gato } from '../types'
 
 interface FormGatoProps {
   coloniaId: string
   onCerrar: () => void
+  onAnadir?: (gato: Omit<Gato, 'id' | 'coloniaId'>) => void
 }
 
 interface FormData {
@@ -20,8 +22,7 @@ interface FormErrors {
   edad?: string
 }
 
-export default function FormGato({ coloniaId, onCerrar }: FormGatoProps) {
-  const [formData, setFormData] = useState<FormData>({
+export default function FormGato({ onCerrar, onAnadir }: FormGatoProps) {  const [formData, setFormData] = useState<FormData>({
     nombre: '',
     color: '',
     sexo: 'macho',
@@ -67,8 +68,25 @@ export default function FormGato({ coloniaId, onCerrar }: FormGatoProps) {
   const handleSubmit = () => {
     if (!validar()) return
 
-    añadirGato({
-      coloniaId,
+    const nuevoGato: Omit<Gato, 'id' | 'coloniaId'> = {
+  nombre: formData.nombre.trim(),
+  color: formData.color.trim(),
+  sexo: formData.sexo,
+  edad: Number(formData.edad),
+  esterilizado: false,
+  testado: false,
+  resultadoTest: null,
+  enfermo: false,
+  descripcionEnfermedad: '',
+  embarazada: false,
+  foto: '',
+  desparasitaciones: []
+}
+
+if (onAnadir) {
+  onAnadir(nuevoGato)
+} else {
+  añadirGato({
       nombre: formData.nombre.trim(),
       color: formData.color.trim(),
       sexo: formData.sexo,
@@ -82,6 +100,7 @@ export default function FormGato({ coloniaId, onCerrar }: FormGatoProps) {
       foto: '',
       desparasitaciones: []
     })
+}
 
     setExito(true)
     setTimeout(() => {

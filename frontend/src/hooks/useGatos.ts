@@ -5,26 +5,33 @@ import * as api from '../api/client.ts'
 export function useGatos(coloniaId?: string) {
   const [gatos, setGatos] = useState<Gato[]>([])
   const [filtro, setFiltro] = useState<'todos' | 'esterilizado' | 'enfermo' | 'embarazada' | 'testado'>('todos')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Carga los gatos desde la API al montar el componente
   useEffect(() => {
-    setLoading(true)
-    const peticion = coloniaId
-      ? api.getGatosByColonia(coloniaId)
-      : Promise.resolve([])
+  let activo = true
 
-    peticion
-      .then(datos => {
+  const peticion = coloniaId
+    ? api.getGatosByColonia(coloniaId)
+    : api.getGatos()
+
+  peticion
+    .then(datos => {
+      if (activo) {
         setGatos(datos)
         setLoading(false)
-      })
-      .catch(err => {
+      }
+    })
+    .catch(err => {
+      if (activo) {
         setError(err.message)
         setLoading(false)
-      })
-  }, [coloniaId])
+      }
+    })
+
+  return () => { activo = false }
+}, [coloniaId])
 
   const gatosFiltrados = useMemo(() => {
     if (filtro === 'esterilizado') return gatos.filter(g => g.esterilizado)
@@ -62,6 +69,13 @@ export function useGatos(coloniaId?: string) {
     }
   }, [])
 
+  const recargar = useCallback(() => {
+  const peticion = coloniaId
+    ? api.getGatosByColonia(coloniaId)
+    : api.getGatos()
+  peticion.then(datos => setGatos(datos)).catch(err => setError(err.message))
+}, [coloniaId])
+
   return {
     gatos,
     gatosFiltrados,
@@ -71,6 +85,7 @@ export function useGatos(coloniaId?: string) {
     error,
     añadirGato,
     actualizarGato,
-    eliminarGato
+    eliminarGato,
+    recargar
   }
 }

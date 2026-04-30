@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useAppContext } from '../context/AppContext'
+import * as api from '../api/client.ts'
 import Button from './Button'
 
 interface FormDesparasitacionProps {
   gatoId: string
   onCerrar: () => void
+  onRecargar?: () => void
 }
 
 interface FormData {
@@ -17,7 +18,7 @@ interface FormErrors {
   fecha?: string
 }
 
-export default function FormDesparasitacion({ gatoId, onCerrar }: FormDesparasitacionProps) {
+export default function FormDesparasitacion({ gatoId, onCerrar, onRecargar }: FormDesparasitacionProps) {
   const [formData, setFormData] = useState<FormData>({
     producto: '',
     fecha: ''
@@ -25,8 +26,6 @@ export default function FormDesparasitacion({ gatoId, onCerrar }: FormDesparasit
 
   const [errores, setErrores] = useState<FormErrors>({})
   const [exito, setExito] = useState(false)
-
-  const { actualizarGato, gatos } = useAppContext()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -38,39 +37,35 @@ export default function FormDesparasitacion({ gatoId, onCerrar }: FormDesparasit
 
   const validar = (): boolean => {
     const nuevosErrores: FormErrors = {}
-
     if (!formData.producto.trim()) {
       nuevosErrores.producto = 'El producto es obligatorio'
     }
-
     if (!formData.fecha) {
       nuevosErrores.fecha = 'La fecha es obligatoria'
     }
-
     setErrores(nuevosErrores)
     return Object.keys(nuevosErrores).length === 0
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validar()) return
 
-    const gato = gatos.find(g => g.id === gatoId)
-    if (!gato) return
-
-    const nuevaDesparasitacion = {
-      id: Date.now().toString(),
-      producto: formData.producto.trim(),
-      fecha: formData.fecha
+    try {
+      const gato = await api.getGatoById(gatoId)
+      const nuevaDesparasitacion = {
+        id: Date.now().toString(),
+        producto: formData.producto.trim(),
+        fecha: formData.fecha
+      }
+      await api.updateGato(gatoId, {
+        desparasitaciones: [...gato.desparasitaciones, nuevaDesparasitacion]
+      })
+      if (onRecargar) onRecargar()
+      setExito(true)
+      setTimeout(() => onCerrar(), 1500)
+    } catch {
+      setErrores({ producto: 'Error al registrar la desparasitacion' })
     }
-
-    actualizarGato(gatoId, {
-      desparasitaciones: [...gato.desparasitaciones, nuevaDesparasitacion]
-    })
-
-    setExito(true)
-    setTimeout(() => {
-      onCerrar()
-    }, 1500)
   }
 
   return (

@@ -90,6 +90,10 @@ export async function deleteGato(id: string): Promise<void> {
   })
 }
 
+export async function getGatos(): Promise<Gato[]> {
+  return request<Gato[]>('/gatos')
+}
+
 // ============================================================
 // DESPARASITACIONES
 // ============================================================
