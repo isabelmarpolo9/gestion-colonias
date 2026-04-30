@@ -60,7 +60,7 @@ export default function HomePage() {
               onClick={() => navigate(`/colonia/${colonia.id}`)}
             >
               <div className="flex justify-between items-center mt-2">
-                <Badge texto={`Cuidador: ${colonia.cuidador}`} color="morado" />
+                <Badge texto={`Cuidador: ${colonia.cuidador}`} color="gris" />
                 <button
                   onClick={e => {
                     e.stopPropagation()

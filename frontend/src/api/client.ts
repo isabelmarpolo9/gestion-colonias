@@ -5,7 +5,7 @@
 import type { Colonia, Gato, Desparasitacion } from '../types/index.ts'
 
 // URL base del backend
-const BASE_URL = 'http://localhost:3000/api/v1'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
 
 // Funcion generica para hacer peticiones HTTP
 // Gestiona los errores de red y los errores del servidor
