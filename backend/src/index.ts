@@ -12,13 +12,22 @@ app.use(express.json())
 // Middleware para permitir peticiones desde el frontend (CORS)
 // Sin esto el navegador bloquea las peticiones del frontend al backend
 app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:5173', 'https://gestion-colonias.vercel.app']
-  const origin = req.headers.origin
-  if (origin && allowedOrigins.includes(origin)) {
+  const origin = req.headers.origin || ''
+  const isAllowed = 
+    origin === 'http://localhost:5173' ||
+    origin.endsWith('.vercel.app')
+  
+  if (isAllowed) {
     res.header('Access-Control-Allow-Origin', origin)
   }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.header('Access-Control-Allow-Headers', 'Content-Type')
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200)
+    return
+  }
+  
   next()
 })
 
