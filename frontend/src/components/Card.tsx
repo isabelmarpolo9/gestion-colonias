@@ -13,9 +13,9 @@ export default function Card({ titulo, subtitulo, children, onClick }: CardProps
   return (
     <div
       onClick={onClick}
-      className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm ${onClick ? 'cursor-pointer hover:shadow-md hover:border-blue-300 transition-all duration-200' : ''}`}
+      className={`bg-white border dark:bg-slate-800 border-gray-200 rounded-xl p-4 shadow-sm ${onClick ? 'cursor-pointer hover:shadow-md hover:border-blue-300 transition-all duration-200' : ''}`}
     >
-      <h3 className="text-lg font-semibold text-gray-800">{titulo}</h3>
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-purple-400">{titulo}</h3>
       {subtitulo && (
         <p className="text-sm text-gray-500 mt-1">{subtitulo}</p>
       )}

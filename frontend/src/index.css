@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Estilos globales */
+@layer base {
+  body {
+    /* bg-white por defecto, dark:bg-slate-950 en modo oscuro */
+    @apply bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300;
+  }
+}
